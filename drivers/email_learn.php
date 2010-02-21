@@ -25,6 +25,8 @@ function do_emaillearn($uids, $spam) {
     if (!$mailto)
     	return;
 
+    $mailto = str_replace('%u', $_SESSION['username'], $mailto);
+
     $message_charset = $rcmail->output->get_charset();
 	// chose transfer encoding
 	$charset_7bit = array('ASCII', 'ISO-2022-JP', 'ISO-8859-1', 'ISO-8859-2', 'ISO-8859-15');
@@ -54,11 +56,23 @@ function do_emaillearn($uids, $spam) {
 		// compose headers array
 		$headers = array();
 		$headers['Date'] = date('r');
-		$headers['From'] = rcube_charset_convert($identity_arr['string'], RCMAIL_CHARSET, $message_charset);
+		$headers['From'] = $from;
 		$headers['To'] = $mailto;
 		$headers['Subject'] = $subject;
 
-		$MAIL_MIME = new rcube_mail_mime($rcmail->config->header_delimiter());
+		// encoding settings for mail composing
+		$params = array(
+		        'eol' => $rcmail->config->header_delimiter(),
+			'text_encoding' => $transfer_encoding,
+			'html_encoding' => 'quoted-printable',
+			'head_encoding' => 'quoted-printable',
+			'head_charset'  => $message_charset,
+			'html_charset'  => $message_charset,
+			'text_charset'  => $message_charset,
+		);
+
+		@$MAIL_MIME = class_exists('rcube_mail_mime') ? new rcube_mail_mime($params) : new Mail_mime($params);
+
 		if ($rcmail->config->get('markasjunk2_email_attach', false)) {
 			// send mail as attachment
 			$MAIL_MIME->setTXTBody(($spam ? 'Spam' : 'Ham'). ' report from RoundCube Webmail', false, true);
@@ -95,26 +109,16 @@ function do_emaillearn($uids, $spam) {
 			}
 		}
 
-		// encoding settings for mail composing
-		$MAIL_MIME->setParam(array(
-			'text_encoding' => $transfer_encoding,
-			'html_encoding' => 'quoted-printable',
-			'head_encoding' => 'quoted-printable',
-			'head_charset'  => $message_charset,
-			'html_charset'  => $message_charset,
-			'text_charset'  => $message_charset,
-		));
-
 		// pass headers to message object
 		$MAIL_MIME->headers($headers);
 
-		rcmail_deliver_message($MAIL_MIME, $from, $mailto, $smtp_error);
+		rcmail_deliver_message($MAIL_MIME, $from, $mailto, $smtp_error, $body_file);
 
 		if ($rcmail->config->get('markasjunk2_debug')) {
 			if ($spam)
-				write_log('markasjunk2', $uid . ' SPAM ' . $email_to . ' (' . $subject . ')');
+				write_log('markasjunk2', $uid . ' SPAM ' . $mailto . ' (' . $subject . ')');
 			else
-				write_log('markasjunk2', $uid . ' HAM ' . $email_to . ' (' . $subject . ')');
+				write_log('markasjunk2', $uid . ' HAM ' . $mailto . ' (' . $subject . ')');
 
 			if ($smtp_error['vars'])
 				write_log('markasjunk2', $smtp_error['vars']);
