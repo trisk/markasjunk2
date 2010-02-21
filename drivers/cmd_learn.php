@@ -37,18 +37,32 @@ function do_salearn($uids, $spam) {
     }
 
 	foreach (explode(",", $uids) as $uid) {
-		$tmpfname = tempnam($temp_dir, 'rcmSALearn');
-		file_put_contents($tmpfname, $rcmail->imap->get_raw_body($uid));
+		if (strpos($command, '%f') === false) {
+		        $spec = array(array('pipe', 'r'), array('pipe', 'w'));
+			$proc = proc_open($command, $spec, $pipes);
+			if (!is_resource($proc))
+				return;
+			fwrite($pipes[0], $rcmail->imap->get_raw_body($uid));
+			fclose($pipes[0]);
+			$output = stream_get_contents($pipes[1]);
+			fclose($pipes[1]);
+			proc_close($proc);
+		} else {
+			$tmpfname = tempnam($temp_dir, 'rcmSALearn');
+			file_put_contents($tmpfname, $rcmail->imap->get_raw_body($uid));
 
-		$tmp_command = str_replace('%f', $tmpfname, $command);
-		exec($tmp_command, $output);
+			$command = str_replace('%f', $tmpfname, $command);
+			exec($command, $output);
+		}
 
 		if ($rcmail->config->get('markasjunk2_debug')) {
-			write_log('markasjunk2', $tmp_command);
+			write_log('markasjunk2', $command);
 			write_log('markasjunk2', $output);
 		}
 
-		unlink($tmpfname);
+		if (isset($tmpfname)) {
+			unlink($tmpfname);
+		}
 		$output = '';
 	}
 }
