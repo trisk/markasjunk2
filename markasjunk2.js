@@ -20,6 +20,36 @@ function rcmail_markasjunk2(prop)
 	if (!rcmail.env.uid && (!rcmail.message_list || !rcmail.message_list.get_selection().length))
 		return;
 
+	// also select childs of (collapsed) threads for dragging
+	if (rcmail.message_list.rows[rcmail.env.uid].has_children) {
+		rcmail.message_list.select_row(rcmail.env.uid, CONTROL_KEY);
+		rcmail.env.uid = null;
+
+		var selection = $.merge([], rcmail.message_list.selection);
+		var depth, row, uid, r;
+		for (var n=0; n < selection.length; n++) {
+			uid = selection[n];
+			if (rcmail.message_list.rows[uid].has_children /*&& !this.rows[uid].expanded*/) {
+				depth = rcmail.message_list.rows[uid].depth;
+				row = rcmail.message_list.rows[uid].obj.nextSibling;
+
+				while (row) {
+					if (row.nodeType == 1) {
+						if ((r = rcmail.message_list.rows[row.uid])) {
+							if (!r.depth || r.depth <= depth)
+								break;
+
+							if (!rcmail.message_list.in_selection(r.uid))
+								rcmail.message_list.select_row(r.uid, CONTROL_KEY);
+						}
+					}
+
+					row = row.nextSibling;
+				}
+			}
+		}
+	}
+
 	var uids = rcmail.env.uid ? rcmail.env.uid : rcmail.message_list.get_selection().join(',');
 
 	rcmail.set_busy(true, 'loading');
@@ -30,6 +60,36 @@ function rcmail_markasnotjunk2(prop)
 {
 	if (!rcmail.env.uid && (!rcmail.message_list || !rcmail.message_list.get_selection().length))
 		return;
+
+	// also select childs of (collapsed) threads for dragging
+	if (rcmail.message_list.rows[rcmail.env.uid].has_children) {
+		rcmail.message_list.select_row(rcmail.env.uid, CONTROL_KEY);
+		rcmail.env.uid = null;
+
+		var selection = $.merge([], rcmail.message_list.selection);
+		var depth, row, uid, r;
+		for (var n=0; n < selection.length; n++) {
+			uid = selection[n];
+			if (rcmail.message_list.rows[uid].has_children /*&& !this.rows[uid].expanded*/) {
+				depth = rcmail.message_list.rows[uid].depth;
+				row = rcmail.message_list.rows[uid].obj.nextSibling;
+
+				while (row) {
+					if (row.nodeType == 1) {
+						if ((r = rcmail.message_list.rows[row.uid])) {
+							if (!r.depth || r.depth <= depth)
+								break;
+
+							if (!rcmail.message_list.in_selection(r.uid))
+								rcmail.message_list.select_row(r.uid, CONTROL_KEY);
+						}
+					}
+
+					row = row.nextSibling;
+				}
+			}
+		}
+	}
 
 	var uids = rcmail.env.uid ? rcmail.env.uid : rcmail.message_list.get_selection().join(',');
 
@@ -75,14 +135,14 @@ function rcmail_markasjunk2_update()
 	if (rcmail.env.junk_mailbox && rcmail.env.mailbox != rcmail.env.junk_mailbox) {
 		$('#rcmContextMenu li.markasjunk2').show();
 		$('#rcmContextMenu li.markasnotjunk2').hide();
-		$('#markasjunk2').show();
-		$('#markasnotjunk2').hide();
+		$('#' + rcmail.buttons['plugin.markasjunk2'][0].id).show();
+		$('#' + rcmail.buttons['plugin.markasnotjunk2'][0].id).hide();
 	}
 	else {
 		$('#rcmContextMenu li.markasjunk2').hide();
 		$('#rcmContextMenu li.markasnotjunk2').show();
-		$('#markasjunk2').hide();
-		$('#markasnotjunk2').show();
+		$('#' + rcmail.buttons['plugin.markasjunk2'][0].id).hide();
+		$('#' + rcmail.buttons['plugin.markasnotjunk2'][0].id).show();
 	}
 }
 
