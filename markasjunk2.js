@@ -20,27 +20,20 @@ function rcmail_markasjunk2(prop)
 	if (!rcmail.env.uid && (!rcmail.message_list || !rcmail.message_list.get_selection().length))
 		return;
 
-	// also select childs of (collapsed) threads for dragging
-	var selection = $.merge([], rcmail.message_list.selection);
-	var depth, row, uid, r;
-	for (var n=0; n < selection.length; n++) {
-		uid = selection[n];
-		if (rcmail.message_list.rows[uid].has_children /*&& !this.rows[uid].expanded*/) {
-			depth = rcmail.message_list.rows[uid].depth;
-			row = rcmail.message_list.rows[uid].obj.nextSibling;
-
-			while (row) {
-				if (row.nodeType == 1) {
-					if ((r = rcmail.message_list.rows[row.uid])) {
-						if (!r.depth || r.depth <= depth)
-							break;
-
-						if (!rcmail.message_list.in_selection(r.uid))
-							rcmail.message_list.select_row(r.uid, CONTROL_KEY);
-					}
-				}
-
-				row = row.nextSibling;
+	// also select childs of (collapsed) threads
+	if (rcmail.message_list) {
+		if (rcmail.env.uid && rcmail.message_list.rows[rcmail.env.uid].has_children && !rcmail.message_list.rows[rcmail.env.uid].expanded) {
+			rcmail.message_list.select_row(rcmail.env.uid, CONTROL_KEY);
+			rcmail.message_list.select_childs(rcmail.env.uid);
+			rcmail.env.uid = null;
+		}
+		else if (rcmail.message_list.get_selection().length) {
+			var selection = $.merge([], rcmail.message_list.selection);
+			var depth, row, uid, r;
+			for (var n = 0; n < selection.length; n++) {
+				uid = selection[n];
+				if (rcmail.message_list.rows[uid].has_children && !rcmail.message_list.rows[uid].expanded)
+					rcmail.message_list.select_childs(uid);
 			}
 		}
 	}
@@ -56,27 +49,20 @@ function rcmail_markasnotjunk2(prop)
 	if (!rcmail.env.uid && (!rcmail.message_list || !rcmail.message_list.get_selection().length))
 		return;
 
-	// also select childs of (collapsed) threads for dragging
-	var selection = $.merge([], rcmail.message_list.selection);
-	var depth, row, uid, r;
-	for (var n=0; n < selection.length; n++) {
-		uid = selection[n];
-		if (rcmail.message_list.rows[uid].has_children /*&& !this.rows[uid].expanded*/) {
-			depth = rcmail.message_list.rows[uid].depth;
-			row = rcmail.message_list.rows[uid].obj.nextSibling;
-
-			while (row) {
-				if (row.nodeType == 1) {
-					if ((r = rcmail.message_list.rows[row.uid])) {
-						if (!r.depth || r.depth <= depth)
-							break;
-
-						if (!rcmail.message_list.in_selection(r.uid))
-							rcmail.message_list.select_row(r.uid, CONTROL_KEY);
-					}
-				}
-
-				row = row.nextSibling;
+	// also select childs of (collapsed) threads
+	if (rcmail.message_list) {
+		if (rcmail.env.uid && rcmail.message_list.rows[rcmail.env.uid].has_children && !rcmail.message_list.rows[rcmail.env.uid].expanded) {
+			rcmail.message_list.select_row(rcmail.env.uid, CONTROL_KEY);
+			rcmail.message_list.select_childs(rcmail.env.uid);
+			rcmail.env.uid = null;
+		}
+		else if (rcmail.message_list.get_selection().length) {
+			var selection = $.merge([], rcmail.message_list.selection);
+			var depth, row, uid, r;
+			for (var n = 0; n < selection.length; n++) {
+				uid = selection[n];
+				if (rcmail.message_list.rows[uid].has_children && !rcmail.message_list.rows[uid].expanded)
+					rcmail.message_list.select_childs(uid);
 			}
 		}
 	}
@@ -89,14 +75,38 @@ function rcmail_markasnotjunk2(prop)
 
 rcmail.rcmail_markasjunk2_move = function(mbox, uid) {
 	var prev_uid = rcmail.env.uid;
-	if (rcmail.message_list && rcmail.message_list.selection.length <= 1) {
+	var prev_sel = null;
+
+	if (rcmail.message_list && !rcmail.message_list.in_selection(uid)) {
 		rcmail.env.uid = uid;
+		prev_sel = rcmail.message_list.get_single_selection();
         this.message_list.remove_row(uid, false);
 	}
 
 	rcmail.move_messages(mbox);
 
 	rcmail.env.uid = prev_uid;
+
+	if (prev_sel)
+		rcmail.message_list.select(prev_sel);
+}
+
+rcmail.rcmail_markasjunk2_delete = function(uid) {
+	var prev_uid = rcmail.env.uid;
+	var prev_sel = null;
+
+	if (rcmail.message_list && !rcmail.message_list.in_selection(uid)) {
+		rcmail.env.uid = uid;
+		prev_sel = rcmail.message_list.get_single_selection();
+        this.message_list.remove_row(uid, false);
+	}
+
+	rcmail.delete_messages();
+
+	rcmail.env.uid = prev_uid;
+
+	if (prev_sel)
+		rcmail.message_list.select(prev_sel);
 }
 
 
