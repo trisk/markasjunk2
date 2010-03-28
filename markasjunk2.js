@@ -76,39 +76,48 @@ function rcmail_markasnotjunk2(prop)
 rcmail.rcmail_markasjunk2_move = function(mbox, uid) {
 	var prev_uid = rcmail.env.uid;
 	var prev_sel = null;
+	var a_uids = uid.split(",");
 
-	if (rcmail.message_list && !rcmail.message_list.in_selection(uid)) {
-		rcmail.env.uid = uid;
-		prev_sel = rcmail.message_list.get_single_selection();
-        this.message_list.remove_row(uid, false);
+	if (rcmail.message_list && a_uids.length == 1) {
+		if (!rcmail.message_list.in_selection(a_uids[0]))
+			prev_sel = rcmail.message_list.get_single_selection();
+
+		rcmail.env.uid = a_uids[0];
+		rcmail.message_list.remove_row(a_uids[0], false);
 	}
 
 	rcmail.move_messages(mbox);
 
 	rcmail.env.uid = prev_uid;
 
-	if (prev_sel)
+	if (prev_sel) {
+		rcmail.message_list.clear_selection();
 		rcmail.message_list.select(prev_sel);
+	}
 }
 
 rcmail.rcmail_markasjunk2_delete = function(uid) {
 	var prev_uid = rcmail.env.uid;
 	var prev_sel = null;
+	var a_uids = uid.split(",");
 
-	if (rcmail.message_list && !rcmail.message_list.in_selection(uid)) {
-		rcmail.env.uid = uid;
-		prev_sel = rcmail.message_list.get_single_selection();
-        this.message_list.remove_row(uid, false);
+	if (rcmail.message_list && a_uids.length == 1) {
+		if (!rcmail.message_list.in_selection(a_uids[0]))
+			prev_sel = rcmail.message_list.get_single_selection();
+
+		rcmail.env.uid = a_uids[0];
+		rcmail.message_list.remove_row(a_uids[0], false);
 	}
 
 	rcmail.delete_messages();
 
 	rcmail.env.uid = prev_uid;
 
-	if (prev_sel)
+	if (prev_sel) {
+		rcmail.message_list.clear_selection();
 		rcmail.message_list.select(prev_sel);
+	}
 }
-
 
 function rcmail_markasjunk2_init()
 {

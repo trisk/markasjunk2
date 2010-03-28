@@ -53,14 +53,8 @@ class markasjunk2 extends rcube_plugin
 				}
 			}
 			elseif ($this->spam_mbox) {
-				if ($_SESSION['mbox'] == $this->spam_mbox) {
-					$markjunk = $this->api->output->button(array('command' => 'plugin.markasjunk2', 'label' => 'markasjunk2.markasjunk', 'id' => 'markasjunk2', 'class' => 'markasjunk2', 'classact' => 'markasjunk2 active', 'style' => 'display: none;'));
-					$marknotjunk = $this->api->output->button(array('command' => 'plugin.markasnotjunk2', 'label' => 'markasjunk2.markasnotjunk', 'id' => 'markasnotjunk2', 'class' => 'markasnotjunk2', 'classact' => 'markasnotjunk2 active'));
-				}
-				else {
-					$markjunk = $this->api->output->button(array('command' => 'plugin.markasjunk2', 'label' => 'markasjunk2.markasjunk', 'id' => 'markasjunk2', 'class' => 'markasjunk2', 'classact' => 'markasjunk2 active'));
-					$marknotjunk = $this->api->output->button(array('command' => 'plugin.markasnotjunk2', 'label' => 'markasjunk2.markasnotjunk', 'id' => 'markasnotjunk2', 'class' => 'markasnotjunk2', 'classact' => 'markasnotjunk2 active', 'style' => 'display: none;'));
-				}
+				$markjunk = $this->api->output->button(array('command' => 'plugin.markasjunk2', 'label' => 'markasjunk2.markasjunk', 'id' => 'markasjunk2', 'class' => 'markasjunk2', 'classact' => 'markasjunk2 active'));
+				$marknotjunk = $this->api->output->button(array('command' => 'plugin.markasnotjunk2', 'label' => 'markasjunk2.markasnotjunk', 'id' => 'markasnotjunk2', 'class' => 'markasnotjunk2', 'classact' => 'markasnotjunk2 active'));
 
 				$this->api->add_content(html::tag('li', null, $markjunk), 'markmenu');
 				$this->api->add_content(html::tag('li', null, $marknotjunk), 'markmenu');
@@ -103,13 +97,14 @@ class markasjunk2 extends rcube_plugin
 
 				if ($rcmail->config->get('markasjunk2_detach_ham', false) && sizeof($message->attachments)) {
 					foreach ($message->attachments as $part) {
-						if ($part->ctype_primary == 'message' && $part->ctype_parameters['x-spam-type'] == 'original') {
+						if ($part->ctype_primary == 'message' && $part->ctype_secondary == 'rfc822') {
+							$orig_message_raw = $imap->get_message_part($message->uid, $part->mime_id, $part);
 							$saved = $imap->save_message($dest_mbox, $orig_message_raw);
 
 							if ($saved) {
 								$this->api->output->command('rcmail_markasjunk2_delete', $uid);
 
-								$a_messageid = $message->headers['messageID'];
+								$a_messageid = $message->headers->messageID;
 								$orig_uid = $imap->get_uid($a_messageid[0], $dest_mbox);
 
 								$this->_ham($orig_uid, $dest_mbox);
