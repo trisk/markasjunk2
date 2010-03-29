@@ -23,7 +23,7 @@ function rcmail_markasjunk2_mark(flag)
 	var prev_sel = null;
 
 	// also select childs of (collapsed) threads
-	if (rcmail.env.uid) {
+	if (rcmail.message_list && rcmail.env.uid) {
 		if (rcmail.message_list.rows[rcmail.env.uid].has_children && !rcmail.message_list.rows[rcmail.env.uid].expanded) {
 			if (!rcmail.message_list.in_selection(rcmail.env.uid)) {
 				prev_sel = rcmail.message_list.get_selection();
