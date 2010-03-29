@@ -197,17 +197,17 @@ class markasjunk2 extends rcube_plugin
 		$rcmail = rcmail::get_instance();
 
 		if ($rcmail->config->get('markasjunk2_spam_flag', false)) {
-			if ($flag = array_search($rcmail->config->get('markasjunk2_spam_flag'), $GLOBALS['IMAP_FLAGS']))
+			if ($flag = array_search($rcmail->config->get('markasjunk2_spam_flag'), $rcmail->imap->conn->flags))
 				$this->spam_flag = $flag;
 			else
-				$GLOBALS['IMAP_FLAGS'][$this->spam_flag] = $rcmail->config->get('markasjunk2_spam_flag');
+				$rcmail->imap->conn->flags[$this->spam_flag] = $rcmail->config->get('markasjunk2_spam_flag');
 		}
 
 		if ($rcmail->config->get('markasjunk2_ham_flag', false)) {
-			if ($flag = array_search($rcmail->config->get('markasjunk2_ham_flag'), $GLOBALS['IMAP_FLAGS']))
+			if ($flag = array_search($rcmail->config->get('markasjunk2_ham_flag'), $rcmail->imap->conn->flags))
 				$this->ham_flag = $flag;
 			else
-				$GLOBALS['IMAP_FLAGS'][$this->ham_flag] = $rcmail->config->get('markasjunk2_ham_flag');
+				$rcmail->imap->conn->flags[$this->ham_flag] = $rcmail->config->get('markasjunk2_ham_flag');
 		}
 	}
 }
