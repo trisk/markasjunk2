@@ -25,6 +25,8 @@ function do_emaillearn($uids, $spam) {
     if (!$mailto)
     	return;
 
+    $mailto = str_replace('%u', $_SESSION['username'], $mailto);
+
     $message_charset = $rcmail->output->get_charset();
 	// chose transfer encoding
 	$charset_7bit = array('ASCII', 'ISO-2022-JP', 'ISO-8859-1', 'ISO-8859-2', 'ISO-8859-15');
